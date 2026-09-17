@@ -4,13 +4,23 @@
 // so the warning goes away and behavior is locked in.
 //
 // Neon / Supabase / Vercel Postgres ship trusted certs, so `verify-full` is
-// the right default. Exception: an explicit `sslmode=disable` is left as-is so
-// a local or CI Postgres without TLS (the service container in e2e.yml) can
-// connect; remote URLs never set `disable`, so they still get `verify-full`.
+// the right default for remote hosts. Local PostgreSQL instances (like the
+// Docker container in this repo) do not expose TLS and must use `sslmode=disable`.
+// Explicit `sslmode` values always win so local teams can override the defaults.
 export function normalizeDatabaseUrl(url: string): string {
   const u = new URL(url);
-  if (u.searchParams.get('sslmode') !== 'disable') {
-    u.searchParams.set('sslmode', 'verify-full');
+
+  if (u.searchParams.has('sslmode')) {
+    return u.toString();
   }
+
+  const hostname = u.hostname.toLowerCase();
+  const isLocalHost =
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '::1' ||
+    hostname.endsWith('.local');
+
+  u.searchParams.set('sslmode', isLocalHost ? 'disable' : 'verify-full');
   return u.toString();
 }
