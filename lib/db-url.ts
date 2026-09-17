@@ -6,21 +6,30 @@
 // Neon / Supabase / Vercel Postgres ship trusted certs, so `verify-full` is
 // the right default for remote hosts. Local PostgreSQL instances (like the
 // Docker container in this repo) do not expose TLS and must use `sslmode=disable`.
-// Explicit `sslmode` values always win so local teams can override the defaults.
+// Only an explicit `sslmode=disable` is left as-is; weak modes are still
+// upgraded so remote URLs never skip server-certificate verification.
 export function normalizeDatabaseUrl(url: string): string {
   const u = new URL(url);
+  const sslmode = u.searchParams.get('sslmode');
 
-  if (u.searchParams.has('sslmode')) {
+  if (sslmode === 'disable') {
     return u.toString();
   }
 
-  const hostname = u.hostname.toLowerCase();
-  const isLocalHost =
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname === '::1' ||
-    hostname.endsWith('.local');
+  if (!sslmode) {
+    const hostname = u.hostname.toLowerCase();
+    const isLocalHost =
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '::1' ||
+      hostname.endsWith('.local');
 
-  u.searchParams.set('sslmode', isLocalHost ? 'disable' : 'verify-full');
+    if (isLocalHost) {
+      u.searchParams.set('sslmode', 'disable');
+      return u.toString();
+    }
+  }
+
+  u.searchParams.set('sslmode', 'verify-full');
   return u.toString();
 }
