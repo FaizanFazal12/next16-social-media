@@ -1,0 +1,21 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "fix/local-postgres-sslmode",
+    "main",
+    "origin",
+    "test-userelativehref"
+  ],
+  "parent": {
+    "fix/local-postgres-sslmode": "main",
+    "main": null,
+    "origin": "main",
+    "test-userelativehref": "main"
+  },
+  "order": [
+    "main",
+    "fix/local-postgres-sslmode",
+    "origin",
+    "test-userelativehref"
+  ]
+}

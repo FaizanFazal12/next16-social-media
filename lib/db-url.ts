@@ -4,8 +4,8 @@
 // so the warning goes away and behavior is locked in.
 //
 // Neon / Supabase / Vercel Postgres ship trusted certs, so `verify-full` is
-// the right default for remote hosts. Local PostgreSQL instances (like the
-// Docker container in this repo) do not expose TLS and must use `sslmode=disable`.
+// the right default for remote hosts. Local or CI Postgres without TLS
+// (localhost / loopback) must use `sslmode=disable`.
 // Only an explicit `sslmode=disable` is left as-is; weak modes are still
 // upgraded so remote URLs never skip server-certificate verification.
 export function normalizeDatabaseUrl(url: string): string {
